@@ -1,10 +1,12 @@
 import os
 import random
+import tifffile
 import cv2
 import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from matplotlib import pyplot as plt
+import numpy as np
 
 IMAGE_EXTENSIONS = ('.png', '.tif')
 
@@ -57,10 +59,10 @@ class ImagesDataLoader:
     def initial_process_image(self, image_path):
         # Load image
         if image_path.endswith('.tif'):
-            image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+            image = tifffile.imread(image_path)
         else:
             image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         return image
 
@@ -96,16 +98,16 @@ class ImagesDataLoader:
 
         return img_tensor_o, img_tensor_n, img_tensor_d, augmented_images['replay']
 
-    def visualize(self, augmented_images):
+    def visualize(self, o, n, d):
         # create figure
         fig = plt.figure(figsize=(10, 5))
-        fig.title('Augmentations: ')
+        # fig.title('Augmentations: ')
 
         # Adds a subplot at the 1st position
         fig.add_subplot(1, 3, 1)
 
         # showing image
-        plt.imshow(augmented_images['image'])
+        plt.imshow(o[0])
         plt.axis('off')
         plt.title("Original Image")
 
@@ -113,7 +115,7 @@ class ImagesDataLoader:
         fig.add_subplot(1, 3, 2)
 
         # showing image
-        plt.imshow(augmented_images['noisy'])
+        plt.imshow(n[0])
         plt.axis('off')
         plt.title("Noisy Image")
 
@@ -121,7 +123,7 @@ class ImagesDataLoader:
         fig.add_subplot(1, 3, 3)
 
         # showing image
-        plt.imshow(augmented_images['denoised'])
+        plt.imshow(d[0])
         plt.axis('off')
         plt.title("Denoised Image")
 
@@ -183,3 +185,8 @@ class ImagesDataLoader:
                 else:
                     print(f"Warning: {item}.txt not found in {os.path.join(path, item)}")
         return result_dict
+
+    def visualizeImg(self, img, title):
+        plt.imshow(img)
+        plt.title(title)
+        plt.show()

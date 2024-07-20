@@ -23,7 +23,6 @@ from utils import svd_orthogonalization, close_logger, init_logging, normalize_d
 from train_common import resume_training, lr_scheduler, log_train_psnr, \
 					validate_and_log, save_model_checkpoint, log_training_patches
 from PIL import Image
-import imagehash as imghash
 import numpy as np
 import numpy as np
 import matplotlib.pyplot as plt
@@ -119,7 +118,7 @@ def main(**args):
 			optimizer.zero_grad()
 
 			# convert inp to [N, num_frames*C. H, W] in  [0., 1.] from [N, num_frames, C. H, W] in [0., 255.]
-			# and extract ground truth (central frame)
+			# extract ground truth (central frame)
 			imgo_train, imgn_train, imgd_train, gt_train, gt_n, gt_d = normalize_data(data[0], data[1], data[2], ctrl_fr_idx)
 
 			N, _, H, W = imgn_train.size()
@@ -133,6 +132,8 @@ def main(**args):
 			# showImage(do[12:15, :, :], "5. Original from pipeline: ")
 
 			# Test for different categories(original, noisy, denoised)
+			# imgn = data[1][0][2]
+			# showImage(imgn, "PRE-N")
 			# showImage(gt_train[0], "GT0")
 			# showImage(gt_n[0], "GTN")
 			# showImage(gt_d[0], "GTD")
@@ -201,47 +202,45 @@ def main(**args):
 	close_logger(logger)
 
 def showImage(img, t):
-	image = img.cpu()  # Extract the image at index i
+	image = img.cpu().numpy()  # Extract the image at index i
 
 	# Assuming the tensor is in [0, 1] range, you can convert it to [0, 255] range
-	image = (image * 255).byte()
-
-	# Convert tensor to numpy array and rearrange dimensions from [C, H, W] to [H, W, C]
-	image = image.permute(1, 2, 0).numpy()
+	image = (image * 255)
+	image = image.astype(np.int).transpose(1, 2, 0)
 
 	# Display the image
 	plt.imshow(image)
 	plt.title(f"Image {t}")
 	plt.show()
 
-def areImagesDesincronized(img1, img2, step, epoch):
-	image1 = img1.cpu()  # Extract the image at index i
-	image1 = (image1 * 255).byte()
-	image1 = image1.permute(1, 2, 0).numpy()
-	i1 = Image.fromarray(image1)
-
-	image2 = img2.cpu()  # Extract the image at index i
-	image2 = (image2 * 255).byte()
-	image2 = image2.permute(1, 2, 0).numpy()
-	i2 = Image.fromarray(image2)
-
-	hash0 = imghash.average_hash(i1)
-	hash1 = imghash.average_hash(i2)
-
-	cutoff = 30  # maximum bits that could be different between the hashes.
-	diff = abs(hash0 - hash1)
-
-	if diff >= cutoff:
-		print('Iajuuuuu')
-		f = open("/home/pau/TFG/logs/NEWLOGS/desync-finder/log/desync-info.txt", "a")
-		f.write("-Desync at step {0} of epoch {1} (hash diff {2})\n".format(step, epoch, diff))
-		f.close()
-
-		current_datetime = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
-		i1.save('/home/pau/TFG/logs/NEWLOGS/desync-finder/images/original/{0}.jpg'.format(current_datetime), 'JPEG')
-		i2.save('/home/pau/TFG/logs/NEWLOGS/desync-finder/images/denoised/{0}.jpg'.format(current_datetime), 'JPEG')
-		return True
-	return False
+# def areImagesDesincronized(img1, img2, step, epoch):
+# 	image1 = img1.cpu()  # Extract the image at index i
+# 	image1 = (image1 * 255).byte()
+# 	image1 = image1.permute(1, 2, 0).numpy()
+# 	i1 = Image.fromarray(image1)
+#
+# 	image2 = img2.cpu()  # Extract the image at index i
+# 	image2 = (image2 * 255).byte()
+# 	image2 = image2.permute(1, 2, 0).numpy()
+# 	i2 = Image.fromarray(image2)
+#
+# 	hash0 = imghash.average_hash(i1)
+# 	hash1 = imghash.average_hash(i2)
+#
+# 	cutoff = 30  # maximum bits that could be different between the hashes.
+# 	diff = abs(hash0 - hash1)
+#
+# 	if diff >= cutoff:
+# 		print('Iajuuuuu')
+# 		f = open("/home/pau/TFG/logs/NEWLOGS/desync-finder/log/desync-info.txt", "a")
+# 		f.write("-Desync at step {0} of epoch {1} (hash diff {2})\n".format(step, epoch, diff))
+# 		f.close()
+#
+# 		current_datetime = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
+# 		i1.save('/home/pau/TFG/logs/NEWLOGS/desync-finder/images/original/{0}.jpg'.format(current_datetime), 'JPEG')
+# 		i2.save('/home/pau/TFG/logs/NEWLOGS/desync-finder/images/denoised/{0}.jpg'.format(current_datetime), 'JPEG')
+# 		return True
+# 	return False
 
 def print_model_parameters(model):
 	pytorch_total_params = sum(p.numel() for p in model.parameters())
