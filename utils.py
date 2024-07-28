@@ -24,6 +24,7 @@ import tifffile
 from torch import nn
 
 IMAGETYPES = ('*.bmp', '*.png', '*.jpg', '*.jpeg', '*.tif') # Supported image types
+# test comment
 
 def normalize_data(datain_o, datain_n, datain_d, ctrl_fr_idx):
 	'''Normalizes and augments an input patch of dim [N, num_frames, C. H, W] in [0., 255.] to \
