@@ -36,12 +36,10 @@ class InputCvBlock(nn.Module):
 	'''
 	def __init__(self, num_in_frames, out_ch, is_block_2=False):
 		super(InputCvBlock, self).__init__()
-		block_multiplier = 2
-		if is_block_2:
-			block_multiplier = 1
-		self.interm_ch = 30
+		noise_map_divisor = 1 if is_block_2 else 2
+		self.interm_ch = 15
 		self.convblock = nn.Sequential(
-			nn.Conv2d(num_in_frames*(3 * block_multiplier + 1), num_in_frames*self.interm_ch, \
+			nn.Conv2d(num_in_frames * 3 + num_in_frames/noise_map_divisor, num_in_frames*self.interm_ch, \
 					  kernel_size=3, padding=1, groups=num_in_frames, bias=False),
 			nn.BatchNorm2d(num_in_frames*self.interm_ch),
 			nn.ReLU(inplace=True),
