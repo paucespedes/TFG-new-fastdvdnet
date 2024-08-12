@@ -54,7 +54,7 @@ class InputCvBlock(nn.Module):
 		return self.convblock(x)
 
 class DownBlock(nn.Module):
-	'''Downscale + (Conv2d => BN => ReLU)*2'''
+	'''Downscale + (Conv2d => BN => ReLU) * 2'''
 	def __init__(self, in_ch, out_ch):
 		super(DownBlock, self).__init__()
 		self.convblock = nn.Sequential(
